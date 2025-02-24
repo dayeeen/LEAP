@@ -11,7 +11,12 @@ class Category extends Model
     use HasFactory, SoftDeletes;
 
     protected $guarded = [
-        'id',
+        'id'
     ];
+
+    public function courses()
+    {
+        return $this->hasMany(Course::class);
+    }
 
 }
