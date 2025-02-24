@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -52,6 +54,28 @@ class User extends Authenticatable
     // courses function to get the courses of the user
     public function courses(){
         return $this->belongsToMany(Course::class, 'course_students');
+    }
+
+    // cek langganan
+    public function subscribe_transactions() {
+        return $this->hasMany(SubscribeTransaction::class);
+    }
+
+    // Reusable function to check if user has active subscription
+    public function hasActiveSubscription() {
+        return $this->subscribe_transactions()
+        ->where('is_paid', true)
+        ->latest('updated_at')
+        ->first();
+
+        if(!$latestSubscription) {
+            return false;
+        }
+
+        // Carbon adalah class yang digunakan untuk mengelola tanggal dan waktu
+        // Carbon::parse ini untuk mengubah string menjadi date
+        $SubscriptionEndDate = Carbon::parse($latestSubscription->subscription_start_date)->addMonths(1);
+        return Carbon::now()->lessThanOrEqualTo($SubscriptionEndDate); // true == masih berlangganan
     }
 
 }
