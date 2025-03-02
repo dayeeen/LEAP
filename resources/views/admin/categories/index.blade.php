@@ -1,3 +1,6 @@
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp,container-queries"></script>
+
+
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-row justify-between items-center">
@@ -9,7 +12,7 @@
             </a>
         </div>
     </x-slot>
-    
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-10 flex flex-col gap-y-5">
@@ -19,7 +22,7 @@
                         <div class="flex flex-col">
                             <h3 class="text-indigo-950 text-xl font-bold">Jumping Jack</h3>
                         </div>
-                    </div> 
+                    </div>
                     <div  class="hidden md:flex flex-col">
                         <p class="text-slate-500 text-sm">Date</p>
                         <h3 class="text-indigo-950 text-xl font-bold">12 Jan 2024</h3>
