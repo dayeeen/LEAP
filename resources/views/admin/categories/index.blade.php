@@ -1,6 +1,3 @@
-<script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp,container-queries"></script>
-
-
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-row justify-between items-center">
