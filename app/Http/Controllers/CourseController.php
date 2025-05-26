@@ -3,7 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Teacher;
+use App\Models\Category;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\StoreCourseRequest;
 
 class CourseController extends Controller
 {
@@ -13,6 +19,19 @@ class CourseController extends Controller
     public function index()
     {
         //
+
+        $user = Auth::user();
+        $query = Course::with(['category', 'teacher', 'students'])->orderByDesc('id');
+
+        if($user->hasRole('teacher')) {
+            $query->whereHas('teacher', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
+        }
+
+        $courses = $query->paginate(10);
+
+        return view('admin.courses.index', compact('courses'));
     }
 
     /**
@@ -20,15 +39,49 @@ class CourseController extends Controller
      */
     public function create()
     {
-        //
+        $categories = Category::all();
+        return view('admin.courses.create', compact('categories'));
+
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCourseRequest $request)
     {
-        //
+        // cek teacher
+        $teacher = Teacher::where('user_id', Auth::user()->id)->first();
+
+        if(!$teacher) {
+            return redirect()->back()->with('error', 'You must be a teacher to create a course.');
+        }
+
+        DB::transaction(function () use ($request, $teacher) {
+            $validated = $request->validated();
+
+            // Handle thumbnail upload
+            if($request->hasFile('thumbnail')) {
+                $thumbnailPath = $request->file('thumbnail')->store('thumbnails', 'public');
+                $validated['thumbnail'] = $thumbnailPath;
+            } else {
+                $validated['thumbnail'] = 'images/thumbnail-default.png';
+            }
+
+            $validated['slug'] = Str::slug($validated['name']);
+            $validated['teacher_id'] = $teacher->id;
+
+            $course = Course::create($validated);
+
+            if(!empty($validated['course_keypoints'])) {
+                foreach($validated['course_keypoints'] as $keypointText) {
+                    $course->course_keypoints()->create([
+                        'name' => $keypointText,
+                    ]);
+                }
+            }
+        });
+
+        return redirect()->route('admin.courses.index')->with('success', 'Course created successfully');
     }
 
     /**
@@ -61,5 +114,17 @@ class CourseController extends Controller
     public function destroy(Course $course)
     {
         //
+        DB::beginTransaction();
+
+        try {
+            $course->delete();
+            DB::commit();
+            return redirect()->route('admin.courses.index')->with('success', 'Category deleted successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('admin.courses.index')->with('error', 'Failed to delete category: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
     }
 }
