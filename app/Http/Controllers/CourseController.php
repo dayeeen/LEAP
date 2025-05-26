@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateCourseRequest;
 use App\Models\Course;
 use App\Models\Teacher;
 use App\Models\Category;
@@ -90,6 +91,8 @@ class CourseController extends Controller
     public function show(Course $course)
     {
         //
+        return view('admin.courses.show', compact('course'));
+
     }
 
     /**
@@ -98,14 +101,43 @@ class CourseController extends Controller
     public function edit(Course $course)
     {
         //
+        return view('admin.courses.edit', [
+            'course' => $course,
+            'categories' => Category::all(),
+        ]);
+
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Course $course)
+    public function update(UpdateCourseRequest $request, Course $course)
     {
         //
+        DB::transaction(function () use ($request, $course) {
+
+            $validated = $request->validated();
+
+            if($request->hasFile('thumbnail')) {
+                $thumbnailPath = $request->file('thumbnail')->store('thumbnail', 'public');
+                $validated['thumbnail'] = $thumbnailPath;
+            }
+
+            $validated['slug'] = Str::slug($validated['name']);
+
+            $course->update($validated);
+
+            if(!empty($validated['course_keypoints'])) {
+                $course->course_keypoints()->delete(); // Clear existing keypoints
+                foreach($validated['course_keypoints'] as $keypointText) {
+                    $course->course_keypoints()->create([
+                        'name' => $keypointText,
+                    ]);
+                }
+            }
+        });
+
+        return redirect()->route('admin.courses.show', $course)->with('success', 'Category updated successfully');
     }
 
     /**
