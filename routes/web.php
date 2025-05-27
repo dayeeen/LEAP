@@ -41,7 +41,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('courses', CourseController::class)
         ->middleware('role:owner|teacher');
 
-        Route::resource('subscribe_transaction', SubscribeTransactionController::class)
+        Route::resource('subscribe_transactions', SubscribeTransactionController::class)
         ->middleware('role:owner|teacher');
 
         Route::get('/add/video/{course:id}', [CourseVideoController::class, 'create'])
