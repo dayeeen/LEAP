@@ -1,12 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FrontController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CourseVideoController;
-use App\Http\Controllers\FrontController;
 use App\Http\Controllers\SubscribeTransactionController;
 
 Route::get('/',[FrontController::class, 'index'])->name('front.index');
@@ -14,10 +15,6 @@ Route::get('/details/{course:slug}',[FrontController::class, 'details'])->name('
 
 Route::get('/category/{category:slug}',[FrontController::class, 'category'])->name('front.category');
 Route::get('/pricing',[FrontController::class, 'pricing'])->name('front.pricing');
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -55,6 +52,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('course_videos', CourseVideoController::class)
         ->middleware('role:owner|teacher');
     });
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
 
